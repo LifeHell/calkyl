@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -87,11 +86,11 @@ func checkInput(input string) (string, string, string, string, error) {
 		isS := isSign(value)
 		isR := isRomanNumber(value)
 		if !isN && !isS && !isR {
-			return "", "", "", "", errorHandler(1)
+			panic("Нераспознанные символы")
 		}
 		if isS {
 			if sign != "" {
-				return "", "", "", "", errorHandler(6)
+				panic("Некорректный ввод")
 			} else {
 				sign = arr[index]
 			}
@@ -112,11 +111,11 @@ func checkInput(input string) (string, string, string, string, error) {
 				second = strings.Join(slice, "")
 			}
 		} else if (intType == "arab" && isR) || (intType == "rom" && isN) {
-			return "", "", "", "", errorHandler(2)
+			panic("Некорректный ввод. Только арабские или только римские цифры")
 		}
 	}
 	if second == "" || first == "" || sign == "" {
-		return "", "", "", "", errorHandler(3)
+		panic("Некорректный ввод. Введите 2 числа и знак")
 	}
 	return intType, first, second, sign, nil
 }
@@ -161,7 +160,7 @@ func romToInt(n string) int {
 func arabToRom(n int) (string, error) {
 	var out string
 	if n <= 0 {
-		return "", errorHandler(7)
+		panic("В римском счислении не существует отрицательных чисел и нуля")
 	}
 	arrArab := [9]int{100, 90, 50, 40, 10, 9, 5, 4, 1}
 	arrRom := [9]string{"C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"}
@@ -179,7 +178,7 @@ func arabToRom(n int) (string, error) {
 
 func calc(first int, second int, sign string) (int, error) {
 	if first > 10 || second > 10 {
-		return 8, errorHandler(8)
+		panic("Ввод от 0 до 10")
 	}
 	switch {
 	case sign == "+":
@@ -191,23 +190,8 @@ func calc(first int, second int, sign string) (int, error) {
 	case sign == "/" && second != 0:
 		return first / second, nil
 	case sign == "/" && second == 0:
-		return 4, errorHandler(4)
+		panic("Делить на 0 запрещено")
 	default:
-		return 5, errorHandler(5)
+		panic("Calc Exeption")
 	}
-}
-
-func errorHandler(e int) error {
-	return errors.New(errorsDist[e])
-}
-
-var errorsDist = map[int]string{
-	1: "Нераспознанные символы",
-	2: "Некорректный ввод. Только арабские или только римские цифры",
-	3: "Некорректный ввод. Введите 2 числа и знак",
-	4: "Делить на 0 запрещено",
-	5: "Calc Exeption",
-	6: "Некорректный ввод",
-	7: "В римском счислении не существует отрицательных чисел и нуля",
-	8: "Ввод от 0 до 10",
 }
