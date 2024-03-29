@@ -4,194 +4,66 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 )
 
-var romNumbers = map[string]int{
-	"C":  100,
-	"XC": 90,
-	"L":  50,
-	"XL": 40,
-	"X":  10,
-	"IX": 9,
-	"V":  5,
-	"IV": 4,
-	"I":  1,
-}
-
 func main() {
-	fmt.Println("Hi. Get it\n" +
-		"Введите пример:")
-	intType, first, second, sign, err := readInput()
+	input := readLine()
+	str, operator, num := parseInput(input)
+	result := calculate(str, operator, num)
+	printResult(result)
+}
+
+func readLine() string {
+	reader := bufio.NewReader(os.Stdin)
+	str, err := reader.ReadString('\n')
 	if err != nil {
-		fmt.Println("Ошибка при вводе данных:\n", err)
-		return
+		fmt.Println("Ошибка чтения:", err)
+		return ""
 	}
-	if intType == "arab" {
-		firstNum, err1 := strconv.Atoi(first)
-		if err1 != nil {
-			fmt.Println("Exeption\n", err1)
-			return
-		}
-		secondNum, err2 := strconv.Atoi(second)
-		if err2 != nil {
-			fmt.Println("Exeption\n", err2)
-			return
-		}
-		res, err3 := calc(firstNum, secondNum, sign)
-		if err3 != nil {
-			fmt.Println("Exeption\n", err3)
-			return
-		} else {
-			fmt.Println("Ответ: ", res)
-		}
-	} else {
-		firstNum := romToInt(first)
-		secondNum := romToInt(second)
-		res, err1 := calc(firstNum, secondNum, sign)
-		if err1 != nil {
-			fmt.Println("Exeption\n", err1)
-			return
-		} else {
-			final, err2 := arabToRom(res)
-			if err2 != nil {
-				fmt.Println("Exeption\n", err2)
-				return
-			}
-			fmt.Println("Ответ: ", final)
-		}
-	}
+	return strings.TrimSpace(str)
 }
 
-func readInput() (string, string, string, string, error) {
-	stdin := bufio.NewReader(os.Stdin)
-	usInput, _ := stdin.ReadString('\n')
-	usInput = strings.TrimSpace(usInput)
-	intType, first, second, sign, err := checkInput(usInput)
-	if err != nil {
-		return "", "", "", "", err
+func parseInput(input string) (string, string, string) {
+	parts := strings.Split(input, " ")
+	if len(parts) != 3 {
+		panic("Неверный формат выражения")
 	}
-	return intType, first, second, sign, err
+	str := strings.Trim(parts[0], "\"")
+	operator := parts[1]
+	num := parts[2]
+	return str, operator, num
 }
 
-func checkInput(input string) (string, string, string, string, error) {
-	r := regexp.MustCompile("\\s+")
-	replace := r.ReplaceAllString(input, "")
-	arr := strings.Split(replace, "")
-	var intType, first, second, sign string
-	for index, value := range arr {
-		isN := isNumber(value)
-		isS := isSign(value)
-		isR := isRomanNumber(value)
-		if !isN && !isS && !isR {
-			panic("Нераспознанные символы")
-		}
-		if isS {
-			if sign != "" {
-				panic("Некорректный ввод")
-			} else {
-				sign = arr[index]
-			}
-		}
-		if (isN && intType != "rom") || (isR && intType != "arab") {
-			if intType == "" {
-				if isN {
-					intType = "arab"
-				} else {
-					intType = "rom"
-				}
-			}
-			if first == "" && !(index+1 == len(arr)) && isSign(arr[index+1]) {
-				slice := arr[0:(index + 1)]
-				first = strings.Join(slice, "")
-			} else if index+1 == len(arr) && first != "" {
-				slice := arr[(len(first) + 1):]
-				second = strings.Join(slice, "")
-			}
-		} else if (intType == "arab" && isR) || (intType == "rom" && isN) {
-			panic("Некорректный ввод. Только арабские или только римские цифры")
-		}
-	}
-	if second == "" || first == "" || sign == "" {
-		panic("Некорректный ввод. Введите 2 числа и знак")
-	}
-	return intType, first, second, sign, nil
-}
-
-func isNumber(c string) bool {
-	if c >= "0" && c <= "9" {
-		return true
-	} else {
-		return false
-	}
-}
-
-func isSign(c string) bool {
-	if c == "+" || c == "-" || c == "/" || c == "*" {
-		return true
-	} else {
-		return false
-	}
-}
-func isRomanNumber(n string) bool {
-	_, ok := romNumbers[n]
-	if ok {
-		return true
-	} else {
-		return false
-	}
-}
-
-func romToInt(n string) int {
-	var out int
-	array := strings.Split(n, "")
-	for i, value := range array {
-		if i+1 != len(array) && romNumbers[value] < romNumbers[array[i+1]] {
-			out -= romNumbers[value]
-		} else {
-			out += romNumbers[value]
-		}
-	}
-	return out
-}
-
-func arabToRom(n int) (string, error) {
-	var out string
-	if n <= 0 {
-		panic("В римском счислении не существует отрицательных чисел и нуля")
-	}
-	arrArab := [9]int{100, 90, 50, 40, 10, 9, 5, 4, 1}
-	arrRom := [9]string{"C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"}
-	for n > 0 {
-		for i := 0; i < 13; i++ {
-			if arrArab[i] <= n {
-				out += arrRom[i]
-				n -= arrArab[i]
-				break
-			}
-		}
-	}
-	return out, nil
-}
-
-func calc(first int, second int, sign string) (int, error) {
-	if first > 10 || second > 10 {
-		panic("Ввод от 0 до 10")
-	}
-	switch {
-	case sign == "+":
-		return first + second, nil
-	case sign == "-":
-		return first - second, nil
-	case sign == "*":
-		return first * second, nil
-	case sign == "/" && second != 0:
-		return first / second, nil
-	case sign == "/" && second == 0:
-		panic("Делить на 0 запрещено")
+func calculate(str, operator, num string) string {
+	switch operator {
+	case "+":
+		return str + strings.Trim(num, "\"")
+	case "-":
+		return strings.ReplaceAll(str, strings.Trim(num, "\""), "")
+	case "*":
+		n := parseInt(num)
+		return strings.Repeat(str, n)
+	case "/":
+		n := parseInt(num)
+		return str[:len(str)/n]
 	default:
-		panic("Calc Exeption")
+		panic("Неподдерживаемая операция")
 	}
+}
+
+func parseInt(s string) int {
+	var num int
+	_, err := fmt.Sscanf(s, "%d", &num)
+	if err != nil {
+		panic("Неверный формат числа")
+	}
+	return num
+}
+
+func printResult(result string) {
+	if len(result) > 40 {
+		result = result[:40] + "..."
+	}
+	fmt.Println("\"" + result + "\"")
 }
