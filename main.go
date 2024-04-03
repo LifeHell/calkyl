@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 )
 
@@ -24,15 +25,14 @@ func readLine() string {
 	return strings.TrimSpace(str)
 }
 
+var r = regexp.MustCompile(`^"(.*?)"\s*([-+])\s*"(.*?)"$`)
+
 func parseInput(input string) (string, string, string) {
-	parts := strings.Split(input, " ")
-	if len(parts) != 3 {
+	parts := r.FindAllStringSubmatch(input, -1)
+	if len(parts) != 1 || len(parts[0]) != 4 {
 		panic("Неверный формат выражения")
 	}
-	str := strings.Trim(parts[0], "\"")
-	operator := parts[1]
-	num := parts[2]
-	return str, operator, num
+	return parts[0][1], parts[0][2], parts[0][3]
 }
 
 func calculate(str, operator, num string) string {
