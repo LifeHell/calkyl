@@ -25,20 +25,21 @@ func readLine() string {
 	return strings.TrimSpace(str)
 }
 
-var r = regexp.MustCompile(`^"(.*?)"\s*([-+])\s*"(.*?)"$`)
+var r = regexp.MustCompile(`(".*?"|\d+)\s*([+\-*\/])\s*(".*?"|\d+)`)
 
 func parseInput(input string) (string, string, string) {
 	parts := r.FindAllStringSubmatch(input, -1)
 	if len(parts) != 1 || len(parts[0]) != 4 {
 		panic("Неверный формат выражения")
 	}
-	return parts[0][1], parts[0][2], parts[0][3]
+
+	return strings.Trim(parts[0][1], "\""), parts[0][2], strings.Trim(parts[0][3], "\"")
 }
 
 func calculate(str, operator, num string) string {
 	switch operator {
 	case "+":
-		return str + strings.Trim(num, "\"")
+		return str + num
 	case "-":
 		return strings.ReplaceAll(str, strings.Trim(num, "\""), "")
 	case "*":
