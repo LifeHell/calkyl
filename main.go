@@ -12,6 +12,10 @@ func main() {
 	input := readLine()
 	str, operator, num := parseInput(input)
 	result := calculate(str, operator, num)
+
+	if len(result) > 40 {
+		result = result[:40] + "..."
+	}
 	printResult(result)
 }
 
@@ -28,6 +32,10 @@ func readLine() string {
 var r = regexp.MustCompile(`(".*?"|\d+)\s*([+\-*\/])\s*(".*?"|\d+)`)
 
 func parseInput(input string) (string, string, string) {
+	if len(input) > 10 {
+		panic("Слишком длинное выражение")
+	}
+
 	parts := r.FindAllStringSubmatch(input, -1)
 	if len(parts) != 1 || len(parts[0]) != 4 {
 		panic("Неверный формат выражения")
@@ -56,7 +64,7 @@ func calculate(str, operator, num string) string {
 func parseInt(s string) int {
 	var num int
 	_, err := fmt.Sscanf(s, "%d", &num)
-	if err != nil {
+	if err != nil || num > 10 {
 		panic("Неверный формат числа")
 	}
 	return num
