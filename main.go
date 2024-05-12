@@ -10,12 +10,9 @@ import (
 
 func main() {
 	input := readLine()
-	str, operator, num := parseInput(input)
-	result := calculate(str, operator, num)
+	v1, operator, v2 := parseInput(input)
+	result := calculate(v1, operator, v2)
 
-	if len(result) > 40 {
-		result = result[:40] + "..."
-	}
 	printResult(result)
 }
 
@@ -32,9 +29,9 @@ func readLine() string {
 var r = regexp.MustCompile(`(".*?"|\d+)\s*([+\-*\/])\s*(".*?"|\d+)`)
 
 func parseInput(input string) (string, string, string) {
-	if len(input) > 10 {
-		panic("Слишком длинное выражение")
-	}
+	// if len([]rune(input)) > 10 {
+	// 	panic("Слишком длинное выражение")
+	// }
 
 	parts := r.FindAllStringSubmatch(input, -1)
 	if len(parts) != 1 || len(parts[0]) != 4 {
@@ -44,18 +41,18 @@ func parseInput(input string) (string, string, string) {
 	return strings.Trim(parts[0][1], "\""), parts[0][2], strings.Trim(parts[0][3], "\"")
 }
 
-func calculate(str, operator, num string) string {
+func calculate(v1, operator, v2 string) string {
 	switch operator {
 	case "+":
-		return str + num
+		return v1 + v2
 	case "-":
-		return strings.ReplaceAll(str, strings.Trim(num, "\""), "")
+		return strings.ReplaceAll(v1, strings.Trim(v2, "\""), "")
 	case "*":
-		n := parseInt(num)
-		return strings.Repeat(str, n)
+		n := parseInt(v2)
+		return strings.Repeat(v1, n)
 	case "/":
-		n := parseInt(num)
-		return str[:len(str)/n]
+		n := parseInt(v2)
+		return string([]rune(v1)[:len(v1)/n])
 	default:
 		panic("Неподдерживаемая операция")
 	}
@@ -71,8 +68,10 @@ func parseInt(s string) int {
 }
 
 func printResult(result string) {
-	if len(result) > 40 {
-		result = result[:40] + "..."
+	runeResult := []rune(result)
+	if len(runeResult) > 40 {
+		runeResult = append(runeResult, []rune("...")...)
 	}
-	fmt.Println("\"" + result + "\"")
+	runeResult = []rune("\"" + string(runeResult) + "\"")
+	fmt.Println(string(runeResult))
 }
